@@ -1,4 +1,4 @@
-# Rekolt_Planter
+# Rekolt_Tracker
 Programming 2 first Java complete UML project. A produce tracking system for planters
 
 A Java console application for recording produce deliveries,
