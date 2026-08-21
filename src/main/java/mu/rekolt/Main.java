@@ -11,10 +11,10 @@ public class Main {
 
         boolean running = true;
 
-        System.out.println("======================================");
+        System.out.println("***********************************");
         System.out.println("     REKOLT PRODUCE TRACKER");
         System.out.println("            Season 2026");
-        System.out.println("======================================");
+        System.out.println("***********************************");
 
         while (running) {
             displayMenu();
@@ -360,9 +360,7 @@ public class Main {
                     (double) massKg * 2.00;
 
             netPayable =
-                    categoryValue
-                            - commission
-                            - transportLevy;
+                    categoryValue - commission - transportLevy;
         }
 
         System.out.println("--------------------------------------");
