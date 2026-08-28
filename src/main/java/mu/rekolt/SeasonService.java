@@ -6,6 +6,21 @@ import java.util.ArrayList;
 
 public class SeasonService {
 
+    // Produce codes
+    private static final String[] PRODUCE_CODES = {
+            "MZE",
+            "BNS",
+            "POT",
+            "TEA"
+    };
+
+    // Price per kilogram
+    private static final double[] PRICES = {
+            30.00,
+            90.00,
+            45.00,
+            25.00
+    };
     // Main collection for Objective 3
     private ArrayList<Delivery> deliveries;
 
@@ -95,23 +110,14 @@ public class SeasonService {
 
     private double getPrice(String produceCode) {
 
-        switch (produceCode) {
+        for (int i = 0; i < PRODUCE_CODES.length; i++) {
 
-            case "MZE":
-                return 30.00;
-
-            case "BNS":
-                return 90.00;
-
-            case "POT":
-                return 45.00;
-
-            case "TEA":
-                return 25.00;
-
-            default:
-                return 0.00;
+            if (PRODUCE_CODES[i].equalsIgnoreCase(produceCode)) {
+                return PRICES[i];
+            }
         }
+
+        return 0.00;
     }
 
     // -----------------------------
