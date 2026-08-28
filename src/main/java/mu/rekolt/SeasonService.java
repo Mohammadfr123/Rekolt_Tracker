@@ -3,11 +3,21 @@ package mu.rekolt;
 import mu.rekolt.model.Delivery;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 public class SeasonService {
 
-    // Produce codes
+    // =========================================================
+    // 1. REQUIRED ARRAYS
+    // =========================================================
+
     private static final String[] PRODUCE_CODES = {
             "MZE",
             "BNS",
@@ -15,51 +25,100 @@ public class SeasonService {
             "TEA"
     };
 
-    // Price per kilogram
     private static final double[] PRICES = {
             30.00,
             90.00,
             45.00,
             25.00
     };
-    // Main collection for Objective 3
+
+
+    // =========================================================
+    // 2. ARRAYLIST
+    // =========================================================
+    /*  Main collection containing all deliveries.*/
     private ArrayList<Delivery> deliveries;
 
-    // Constructor
+
+    // =========================================================
+    // 3. CONSTRUCTOR
+    // =========================================================
+
     public SeasonService() {
+
         deliveries = new ArrayList<>();
     }
 
-    // Add a delivery to the ArrayList
+
+    // =========================================================
+    // 4. ARRAYLIST METHODS
+    // =========================================================
+
+    /*
+     * Add a delivery to the ArrayList.
+     */
     public void addDelivery(Delivery delivery) {
+
         deliveries.add(delivery);
     }
 
-    // Return all deliveries
+
+    /*
+     * Return all deliveries.
+     */
     public ArrayList<Delivery> getDeliveries() {
+
         return deliveries;
     }
 
-    // -----------------------------
-    // QUALITY GRADING
-    // -----------------------------
+
+    // =========================================================
+    // 5. PRICE LOOKUP USING ARRAYS
+    // =========================================================
+
+    private double getPrice(String produceCode) {
+
+        for (int i = 0; i < PRODUCE_CODES.length; i++) {
+
+            if (PRODUCE_CODES[i]
+                    .equalsIgnoreCase(produceCode)) {
+
+                return PRICES[i];
+            }
+        }
+
+        return 0.00;
+    }
+
+
+    // =========================================================
+    // 6. QUALITY GRADING
+    // =========================================================
 
     private String determineGrade(int qualityScore) {
 
         if (qualityScore >= 85) {
+
             return "A";
+
         } else if (qualityScore >= 70) {
+
             return "B";
+
         } else if (qualityScore >= 50) {
+
             return "C";
+
         } else {
+
             return "REJECT";
         }
     }
 
-    // -----------------------------
-    // GRADE MULTIPLIER
-    // -----------------------------
+
+    // =========================================================
+    // 7. GRADE MULTIPLIER
+    // =========================================================
 
     private double getGradeMultiplier(String grade) {
 
@@ -82,11 +141,13 @@ public class SeasonService {
         }
     }
 
-    // -----------------------------
-    // CATEGORY MULTIPLIER
-    // -----------------------------
 
-    private double getCategoryMultiplier(String produceCode) {
+    // =========================================================
+    // 8. CATEGORY MULTIPLIER
+    // =========================================================
+
+    private double getCategoryMultiplier(
+            String produceCode) {
 
         switch (produceCode) {
 
@@ -105,39 +166,30 @@ public class SeasonService {
         }
     }
 
-    // -----------------------------
-    // PRICE
-    // -----------------------------
 
-    private double getPrice(String produceCode) {
-
-        for (int i = 0; i < PRODUCE_CODES.length; i++) {
-
-            if (PRODUCE_CODES[i].equalsIgnoreCase(produceCode)) {
-                return PRICES[i];
-            }
-        }
-
-        return 0.00;
-    }
-
-    // -----------------------------
-    // PAYMENT CALCULATION
-    // -----------------------------
+    // =========================================================
+    // 9. NET PAYMENT CALCULATION
+    // =========================================================
 
     private double calculateNetPayable(
             double massKg,
             String produceCode,
             int qualityScore) {
 
-        String grade = determineGrade(qualityScore);
+        String grade =
+                determineGrade(qualityScore);
 
-        // Rejected deliveries receive no payment
+        /*
+         * Rejected deliveries are still recorded,
+         * but receive zero payment.
+         */
         if (grade.equals("REJECT")) {
-            return 0.0;
+
+            return 0.00;
         }
 
-        double price = getPrice(produceCode);
+        double price =
+                getPrice(produceCode);
 
         double gradeMultiplier =
                 getGradeMultiplier(grade);
@@ -154,9 +206,15 @@ public class SeasonService {
         double categoryValue =
                 gradeValue * categoryMultiplier;
 
+        /*
+         * 5% commission.
+         */
         double commission =
                 categoryValue * 0.05;
 
+        /*
+         * Transport levy of 2 MUR per kg.
+         */
         double transportLevy =
                 massKg * 2.00;
 
@@ -165,9 +223,10 @@ public class SeasonService {
                 - transportLevy;
     }
 
-    // -----------------------------
-    // CREATE SAMPLE DELIVERY
-    // -----------------------------
+
+    // =========================================================
+    // 10. ADD SAMPLE DELIVERY
+    // =========================================================
 
     private void addSampleDelivery(
             String deliveryId,
@@ -204,9 +263,10 @@ public class SeasonService {
         addDelivery(delivery);
     }
 
-    // -----------------------------
-    // LOAD 12 SAMPLE DELIVERIES
-    // -----------------------------
+
+    // =========================================================
+    // 11. LOAD 12 SAMPLE DELIVERIES
+    // =========================================================
 
     public void loadSampleDeliveries() {
 
@@ -330,7 +390,15 @@ public class SeasonService {
                 3
         );
     }
-    public Map<String, Double> calculatePaymentPerMember() {
+
+
+    // =========================================================
+    // 12. HASHMAP
+    // MEMBER ID -> TOTAL PAYMENT
+    // =========================================================
+
+    public Map<String, Double>
+    calculatePaymentPerMember() {
 
         Map<String, Double> paymentPerMember =
                 new HashMap<>();
@@ -343,15 +411,177 @@ public class SeasonService {
             double currentTotal =
                     paymentPerMember.getOrDefault(
                             memberId,
-                            0.0
+                            0.00
                     );
 
             paymentPerMember.put(
                     memberId,
-                    currentTotal + delivery.getNetPayable()
+                    currentTotal
+                            + delivery.getNetPayable()
             );
         }
 
         return paymentPerMember;
+    }
+
+
+    // =========================================================
+    // 13. MAP OF LISTS
+    // MEMBER ID -> THEIR DELIVERIES
+    // =========================================================
+
+    public Map<String, List<Delivery>>
+    getDeliveriesPerMember() {
+
+        Map<String, List<Delivery>>
+                deliveriesPerMember =
+                new HashMap<>();
+
+        for (Delivery delivery : deliveries) {
+
+            String memberId =
+                    delivery.getMemberId();
+
+            deliveriesPerMember
+                    .computeIfAbsent(
+                            memberId,
+                            key -> new ArrayList<>()
+                    )
+                    .add(delivery);
+        }
+
+        return deliveriesPerMember;
+    }
+
+
+    // =========================================================
+    // 14. HASHSET
+    // DISTINCT MEMBER IDS
+    // =========================================================
+
+    public Set<String>
+    getDistinctMemberIds() {
+
+        Set<String> memberIds =
+                new HashSet<>();
+
+        for (Delivery delivery : deliveries) {
+
+            memberIds.add(
+                    delivery.getMemberId()
+            );
+        }
+
+        return memberIds;
+    }
+
+
+    // =========================================================
+    // 15. SEARCH BY DELIVERY ID
+    // =========================================================
+
+    public Delivery findDeliveryById(
+            String deliveryId) {
+
+        for (Delivery delivery : deliveries) {
+
+            if (delivery.getDeliveryId()
+                    .equalsIgnoreCase(deliveryId)) {
+
+                return delivery;
+            }
+        }
+
+        /*
+         * null represents an absent result.
+         */
+        return null;
+    }
+
+
+    // =========================================================
+    // 16. COMPARABLE
+    // NATURAL ORDERING
+    // =========================================================
+
+    public void sortByDeliveryId() {
+
+        Collections.sort(deliveries);
+    }
+
+
+    // =========================================================
+    // 17. COMPARATOR
+    // SORT BY NET PAYMENT DESCENDING
+    // =========================================================
+
+    public void sortByPaymentDescending() {
+
+        deliveries.sort(
+                Comparator.comparingDouble(
+                        Delivery::getNetPayable
+                ).reversed()
+        );
+    }
+
+
+    // =========================================================
+    // 18. TOP FIVE DELIVERIES
+    // =========================================================
+
+    public List<Delivery> getTopFiveDeliveries() {
+
+        /*
+         * Create a copy so that this method does not
+         * permanently change the main ArrayList order.
+         */
+        List<Delivery> sortedDeliveries =
+                new ArrayList<>(deliveries);
+
+        sortedDeliveries.sort(
+                Comparator.comparingDouble(
+                        Delivery::getNetPayable
+                ).reversed()
+        );
+
+        int numberToReturn =
+                Math.min(5, sortedDeliveries.size());
+
+        return new ArrayList<>(
+                sortedDeliveries.subList(
+                        0,
+                        numberToReturn
+                )
+        );
+    }
+
+
+    // =========================================================
+    // 19. ITERATOR
+    // REMOVE REJECTED DELIVERIES
+    // =========================================================
+
+    public int removeRejectedDeliveries() {
+
+        int removed = 0;
+
+        Iterator<Delivery> iterator =
+                deliveries.iterator();
+
+        while (iterator.hasNext()) {
+
+            Delivery delivery =
+                    iterator.next();
+
+            if (delivery.getGrade()
+                    .equalsIgnoreCase("REJECT")) {
+
+                iterator.remove();
+
+                removed++;
+            }
+        }
+
+        return removed;
     }
 }

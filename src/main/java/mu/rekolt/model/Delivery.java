@@ -70,23 +70,30 @@ public class Delivery implements Comparable<Delivery> {
         return netPayable;
     }
 
+    /*
+     * Comparable:
+     * Natural ordering of Delivery objects is by delivery ID.
+     */
     @Override
     public int compareTo(Delivery other) {
-        return this.deliveryId.compareTo(other.deliveryId);
+
+        return this.deliveryId.compareTo(
+                other.deliveryId
+        );
     }
 
     @Override
     public String toString() {
 
         return String.format(
-                "%s | %s | %s | %.1f kg | Grade %s | %.2f MUR",
+                "%s | %s | %s | %.1f kg | Quality %d | Grade %s | %.2f MUR",
                 deliveryId,
                 memberId,
                 produceCode,
                 massKg,
+                qualityScore,
                 grade,
                 netPayable
         );
     }
 }
-
