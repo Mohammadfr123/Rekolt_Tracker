@@ -1,5 +1,7 @@
 package mu.rekolt;
 
+import mu.rekolt.model.Delivery;
+  import mu.rekolt.SeasonService;
 import java.util.Scanner;
 
 public class Main {
@@ -363,6 +365,14 @@ public class Main {
                     categoryValue - commission - transportLevy;
         }
 
+
+        SeasonService seasonService =
+                new SeasonService();
+        seasonService.loadSampleDeliveries();
+        for (Delivery delivery :
+                seasonService.getDeliveries())
+            System.out.println(delivery);
+
         System.out.println("--------------------------------------");
         System.out.println("Delivery recorded");
         System.out.println("--------------------------------------");
@@ -423,7 +433,18 @@ public class Main {
     // Placeholder for Objective 3
     public static void showSeasonFigures() {
 
+        SeasonService seasonService =
+                new SeasonService();
+
+        seasonService.loadSampleDeliveries();
+
         System.out.println();
-        System.out.println("Season figures will be implemented with collections in Objective 3.");
+        System.out.println("===== OBJECTIVE 3 TEST =====");
+
+        for (Delivery delivery :
+                seasonService.getDeliveries()) {
+
+            System.out.println(delivery);
+        }
     }
 }
