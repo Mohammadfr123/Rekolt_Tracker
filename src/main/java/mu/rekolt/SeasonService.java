@@ -3,7 +3,8 @@ package mu.rekolt;
 import mu.rekolt.model.Delivery;
 
 import java.util.ArrayList;
-
+import java.util.HashMap;
+import java.util.Map;
 public class SeasonService {
 
     // Produce codes
@@ -328,5 +329,29 @@ public class SeasonService {
                 86,
                 3
         );
+    }
+    public Map<String, Double> calculatePaymentPerMember() {
+
+        Map<String, Double> paymentPerMember =
+                new HashMap<>();
+
+        for (Delivery delivery : deliveries) {
+
+            String memberId =
+                    delivery.getMemberId();
+
+            double currentTotal =
+                    paymentPerMember.getOrDefault(
+                            memberId,
+                            0.0
+                    );
+
+            paymentPerMember.put(
+                    memberId,
+                    currentTotal + delivery.getNetPayable()
+            );
+        }
+
+        return paymentPerMember;
     }
 }

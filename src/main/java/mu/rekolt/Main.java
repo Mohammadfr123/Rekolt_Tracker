@@ -3,7 +3,7 @@ package mu.rekolt;
 import mu.rekolt.model.Delivery;
   import mu.rekolt.SeasonService;
 import java.util.Scanner;
-
+import java.util.Map;
 public class Main {
 
     // Scanner used for reading user input
@@ -437,7 +437,21 @@ public class Main {
                 new SeasonService();
 
         seasonService.loadSampleDeliveries();
+        System.out.println();
+        System.out.println("===== PAYMENT PER MEMBER =====");
 
+        Map<String, Double> payments =
+                seasonService.calculatePaymentPerMember();
+
+        for (Map.Entry<String, Double> entry :
+                payments.entrySet()) {
+
+            System.out.printf(
+                    "%s -> %.2f MUR%n",
+                    entry.getKey(),
+                    entry.getValue()
+            );
+        }
         System.out.println();
         System.out.println("===== OBJECTIVE 3 TEST =====");
 
