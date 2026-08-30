@@ -41,6 +41,7 @@ Abstraction, inheritance, interfaces and polymorphism.
 
 ### Objective 6
 Microsoft Word season report generation.
+<img width="804" height="394" alt="Screenshot 2026-08-30 235744" src="https://github.com/user-attachments/assets/f67e13be-b83b-40b0-bace-b3825e88cf84" />
 
 ## How to Run
 
