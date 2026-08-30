@@ -3,32 +3,16 @@ package mu.rekolt.service;
 import mu.rekolt.model.Delivery;
 import mu.rekolt.model.Grade;
 
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
-import org.apache.poi.xwpf.usermodel.XWPFTable;
-import org.apache.poi.xwpf.usermodel.XWPFTableCell;
-import org.apache.poi.xwpf.usermodel.XWPFTableRow;
-
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import org.apache.poi.xwpf.usermodel.*;
+import java.io.*;
+import java.nio.file.*;
+import java.time.*;
+import java.time.format.*;
+import java.util.*;
 
 public class ReportService {
 
-    private static final String OUTPUT_DIRECTORY = "output";
+    private static final String OUTPUT_FOLDER = "output";
     private static final String REPORT_FILE =
             "output/season-report.docx";
     private static final String LOG_FILE =
@@ -40,9 +24,7 @@ public class ReportService {
         this.seasonService = seasonService;
     }
 
-    /**
-     * Generates the complete season report.
-     */
+    // Generates the complete season report
     public void generateSeasonReport() {
 
         System.out.println();
@@ -52,11 +34,12 @@ public class ReportService {
 
         try {
 
-            createOutputDirectory();
+            Files.createDirectories(
+                    Path.of(OUTPUT_FOLDER)
+            );
 
-            writeWordDocument();
-
-            writeRunLog(
+            writeReport();
+            writeLog(
                     "Season report generated successfully: "
                             + REPORT_FILE
             );
@@ -65,65 +48,36 @@ public class ReportService {
                     "Season report generated successfully."
             );
 
-        } catch (FileNotFoundException e) {
-
-            System.out.println(
-                    "Unable to write the season report. "
-                            + "Please check that the output folder exists "
-                            + "and that the report file is not open."
-            );
-
         } catch (IOException e) {
 
             System.out.println(
                     "Unable to write the season report. "
-                            + "Please check your file permissions "
-                            + "and make sure the output folder is writable."
+                            + "Check that the output folder is writable "
+                            + "and that the report is not open."
             );
         }
     }
 
-    /**
-     * Creates the output directory if it does not exist.
-     */
-    private void createOutputDirectory()
-            throws IOException {
+    // Creates the Word document
+    private void writeReport() throws IOException {
 
-        Files.createDirectories(
-                Path.of(OUTPUT_DIRECTORY)
-        );
-    }
-
-    /**
-     * Creates the Word document.
-     */
-    private void writeWordDocument()
-            throws IOException {
-
-        /*
-         * try-with-resources automatically closes the
-         * Word document and output stream.
-         */
         try (
                 XWPFDocument document =
                         new XWPFDocument();
 
-                FileOutputStream outputStream =
+                FileOutputStream output =
                         new FileOutputStream(REPORT_FILE)
         ) {
 
-            addReportTitle(document);
+            addTitle(document);
 
-            Map<String, List<Delivery>>
-                    deliveriesPerMember =
-                    groupDeliveriesByMember();
+            Map<String, List<Delivery>> members =
+                    groupDeliveries();
 
             boolean firstMember = true;
 
-            for (
-                    Map.Entry<String, List<Delivery>> entry :
-                    deliveriesPerMember.entrySet()
-            ) {
+            for (Map.Entry<String, List<Delivery>> entry :
+                    members.entrySet()) {
 
                 if (!firstMember) {
                     addPageBreak(document);
@@ -140,56 +94,48 @@ public class ReportService {
 
             addSeasonTotals(
                     document,
-                    deliveriesPerMember
+                    members
             );
 
-            document.write(outputStream);
+            document.write(output);
         }
     }
 
-    /**
-     * Groups all deliveries by member.
-     */
-    private Map<String, List<Delivery>>
-    groupDeliveriesByMember() {
+    // Groups deliveries by member
+    private Map<String, List<Delivery>> groupDeliveries() {
 
-        Map<String, List<Delivery>>
-                grouped =
+        Map<String, List<Delivery>> members =
                 new LinkedHashMap<>();
 
         for (Delivery delivery :
                 seasonService.getDeliveries()) {
 
-            grouped.computeIfAbsent(
+            members.computeIfAbsent(
                     delivery.getMemberId(),
                     key -> new ArrayList<>()
             ).add(delivery);
         }
 
-        return grouped;
+        return members;
     }
 
-    /**
-     * Adds the main report title.
-     */
-    private void addReportTitle(
+    // Adds report title
+    private void addTitle(
             XWPFDocument document) {
 
-        XWPFParagraph paragraph =
+        XWPFParagraph title =
                 document.createParagraph();
 
-        paragraph.setAlignment(
-                org.apache.poi.xwpf.usermodel
-                        .ParagraphAlignment.CENTER
+        title.setAlignment(
+                ParagraphAlignment.CENTER
         );
 
-        XWPFRun run =
-                paragraph.createRun();
+        XWPFRun titleRun =
+                title.createRun();
 
-        run.setBold(true);
-        run.setFontSize(20);
-
-        run.setText(
+        titleRun.setBold(true);
+        titleRun.setFontSize(20);
+        titleRun.setText(
                 "REKOLT PRODUCE TRACKER"
         );
 
@@ -197,8 +143,7 @@ public class ReportService {
                 document.createParagraph();
 
         subtitle.setAlignment(
-                org.apache.poi.xwpf.usermodel
-                        .ParagraphAlignment.CENTER
+                ParagraphAlignment.CENTER
         );
 
         XWPFRun subtitleRun =
@@ -206,32 +151,24 @@ public class ReportService {
 
         subtitleRun.setBold(true);
         subtitleRun.setFontSize(14);
-
         subtitleRun.setText(
                 "Season 2026 Report"
         );
     }
 
-    /**
-     * Adds a page break before the next member.
-     */
+    // Adds a page break
     private void addPageBreak(
             XWPFDocument document) {
 
         XWPFParagraph paragraph =
                 document.createParagraph();
 
-        XWPFRun run =
-                paragraph.createRun();
-
-        run.addBreak(
-                org.apache.poi.xwpf.usermodel.BreakType.PAGE
+        paragraph.createRun().addBreak(
+                BreakType.PAGE
         );
     }
 
-    /**
-     * Creates one complete section for a member.
-     */
+    // Creates a member section
     private void addMemberSection(
             XWPFDocument document,
             String memberId,
@@ -267,7 +204,7 @@ public class ReportService {
                 deliveries
         );
 
-        addMemberPaymentSummary(
+        addPaymentSummary(
                 document,
                 deliveries
         );
@@ -275,52 +212,34 @@ public class ReportService {
         addSignatureLine(document);
     }
 
-    /**
-     * Adds a heading.
-     */
+    // Adds a heading
     private void addHeading(
             XWPFDocument document,
             String text) {
 
-        XWPFParagraph paragraph =
-                document.createParagraph();
-
         XWPFRun run =
-                paragraph.createRun();
+                document.createParagraph()
+                        .createRun();
 
         run.setBold(true);
         run.setFontSize(16);
         run.setText(text);
     }
 
-    /**
-     * Adds normal text.
-     */
+    // Adds normal text
     private void addText(
             XWPFDocument document,
             String text) {
 
-        XWPFParagraph paragraph =
-                document.createParagraph();
-
-        XWPFRun run =
-                paragraph.createRun();
-
-        run.setText(text);
+        document.createParagraph()
+                .createRun()
+                .setText(text);
     }
 
-    /**
-     * Creates the delivery table for a member.
-     */
+    // Creates the delivery table
     private void addDeliveryTable(
             XWPFDocument document,
             List<Delivery> deliveries) {
-
-        XWPFTable table =
-                document.createTable(
-                        deliveries.size() + 1,
-                        6
-                );
 
         String[] headers = {
                 "Delivery ID",
@@ -331,23 +250,25 @@ public class ReportService {
                 "Net Payable (MUR)"
         };
 
-        XWPFTableRow headerRow =
+        XWPFTable table =
+                document.createTable(
+                        deliveries.size() + 1,
+                        headers.length
+                );
+
+        XWPFTableRow header =
                 table.getRow(0);
 
-        for (int i = 0;
-             i < headers.length;
-             i++) {
+        for (int i = 0; i < headers.length; i++) {
 
-            setCellText(
-                    headerRow.getCell(i),
+            setCell(
+                    header.getCell(i),
                     headers[i],
                     true
             );
         }
 
-        for (int i = 0;
-             i < deliveries.size();
-             i++) {
+        for (int i = 0; i < deliveries.size(); i++) {
 
             Delivery delivery =
                     deliveries.get(i);
@@ -355,19 +276,19 @@ public class ReportService {
             XWPFTableRow row =
                     table.getRow(i + 1);
 
-            setCellText(
+            setCell(
                     row.getCell(0),
                     delivery.getDeliveryId(),
                     false
             );
 
-            setCellText(
+            setCell(
                     row.getCell(1),
                     delivery.getProduceCode(),
                     false
             );
 
-            setCellText(
+            setCell(
                     row.getCell(2),
                     String.format(
                             "%.2f",
@@ -376,13 +297,13 @@ public class ReportService {
                     false
             );
 
-            setCellText(
+            setCell(
                     row.getCell(3),
                     delivery.getGrade().toString(),
                     false
             );
 
-            setCellText(
+            setCell(
                     row.getCell(4),
                     String.valueOf(
                             delivery.getQualityScore()
@@ -390,7 +311,7 @@ public class ReportService {
                     false
             );
 
-            setCellText(
+            setCell(
                     row.getCell(5),
                     String.format(
                             "%.2f",
@@ -401,24 +322,20 @@ public class ReportService {
         }
     }
 
-    /**
-     * Adds commission, levy and net payable.
-     */
-    private void addMemberPaymentSummary(
+    // Adds payment information
+    private void addPaymentSummary(
             XWPFDocument document,
             List<Delivery> deliveries) {
 
-        double totalCommission = 0.0;
-        double totalTransportLevy = 0.0;
-        double totalNetPayable = 0.0;
+        double commission = 0;
+        double transport = 0;
+        double total = 0;
 
-        for (Delivery delivery :
-                deliveries) {
+        for (Delivery delivery : deliveries) {
 
-            if (delivery.getGrade()
-                    != Grade.REJECT) {
+            if (delivery.getGrade() != Grade.REJECT) {
 
-                double valueAfterCategory =
+                double value =
                         delivery.getMassKg()
                                 * delivery.getProduce()
                                 .getPricePerKg()
@@ -427,17 +344,11 @@ public class ReportService {
                                 * delivery.getProduce()
                                 .getCategoryMultiplier();
 
-                double commission =
-                        valueAfterCategory * 0.05;
-
-                double transportLevy =
-                        delivery.getMassKg() * 2.00;
-
-                totalCommission += commission;
-                totalTransportLevy += transportLevy;
+                commission += value * 0.05;
+                transport += delivery.getMassKg() * 2;
             }
 
-            totalNetPayable +=
+            total +=
                     delivery.calculateNetPayable();
         }
 
@@ -445,7 +356,7 @@ public class ReportService {
                 document,
                 String.format(
                         "Commission (5%%): %.2f MUR",
-                        totalCommission
+                        commission
                 )
         );
 
@@ -453,15 +364,13 @@ public class ReportService {
                 document,
                 String.format(
                         "Transport levy: %.2f MUR",
-                        totalTransportLevy
+                        transport
                 )
         );
 
-        XWPFParagraph paragraph =
-                document.createParagraph();
-
         XWPFRun run =
-                paragraph.createRun();
+                document.createParagraph()
+                        .createRun();
 
         run.setBold(true);
         run.setFontSize(13);
@@ -469,32 +378,25 @@ public class ReportService {
         run.setText(
                 String.format(
                         "NET PAYABLE: %.2f MUR",
-                        totalNetPayable
+                        total
                 )
         );
     }
 
-    /**
-     * Adds the member signature line.
-     */
+    // Adds signature line
     private void addSignatureLine(
             XWPFDocument document) {
 
-        XWPFParagraph paragraph =
-                document.createParagraph();
-
-        paragraph.createRun().setText(
+        addText(
+                document,
                 "Signature: ______________________________"
         );
     }
 
-    /**
-     * Adds the final season totals.
-     */
+    // Adds final season totals
     private void addSeasonTotals(
             XWPFDocument document,
-            Map<String, List<Delivery>>
-                    deliveriesPerMember) {
+            Map<String, List<Delivery>> members) {
 
         addPageBreak(document);
 
@@ -504,19 +406,16 @@ public class ReportService {
         );
 
         int totalDeliveries = 0;
-        double totalMass = 0.0;
-        double totalPayment = 0.0;
+        double totalMass = 0;
+        double totalPayment = 0;
 
-        for (
-                List<Delivery> deliveries :
-                deliveriesPerMember.values()
-        ) {
+        for (List<Delivery> deliveries :
+                members.values()) {
 
             totalDeliveries +=
                     deliveries.size();
 
-            for (Delivery delivery :
-                    deliveries) {
+            for (Delivery delivery : deliveries) {
 
                 totalMass +=
                         delivery.getMassKg();
@@ -529,7 +428,7 @@ public class ReportService {
         addText(
                 document,
                 "Total members: "
-                        + deliveriesPerMember.size()
+                        + members.size()
         );
 
         addText(
@@ -546,11 +445,9 @@ public class ReportService {
                 )
         );
 
-        XWPFParagraph paragraph =
-                document.createParagraph();
-
         XWPFRun run =
-                paragraph.createRun();
+                document.createParagraph()
+                        .createRun();
 
         run.setBold(true);
         run.setFontSize(14);
@@ -563,53 +460,40 @@ public class ReportService {
         );
     }
 
-    /**
-     * Sets text inside a Word table cell.
-     */
-    private void setCellText(
+    // Sets text inside a table cell
+    private void setCell(
             XWPFTableCell cell,
             String text,
             boolean bold) {
 
-        cell.removeParagraph(
-                0
-        );
-
-        XWPFParagraph paragraph =
-                cell.addParagraph();
+        cell.removeParagraph(0);
 
         XWPFRun run =
-                paragraph.createRun();
+                cell.addParagraph()
+                        .createRun();
 
         run.setBold(bold);
         run.setText(text);
     }
 
-    /**
-     * Appends a timestamped line to run-log.txt.
-     */
-    private void writeRunLog(
-            String message)
-            throws IOException {
+    // Writes to run-log.txt
+    private void writeLog(
+            String message) throws IOException {
 
         String timestamp =
                 LocalDateTime.now()
                         .format(
-                                DateTimeFormatter
-                                        .ofPattern(
-                                                "yyyy-MM-dd HH:mm:ss"
-                                        )
+                                DateTimeFormatter.ofPattern(
+                                        "yyyy-MM-dd HH:mm:ss"
+                                )
                         );
-
-        String line =
-                timestamp
-                        + " - "
-                        + message
-                        + System.lineSeparator();
 
         Files.writeString(
                 Path.of(LOG_FILE),
-                line,
+                timestamp
+                        + " - "
+                        + message
+                        + System.lineSeparator(),
                 StandardOpenOption.CREATE,
                 StandardOpenOption.APPEND
         );

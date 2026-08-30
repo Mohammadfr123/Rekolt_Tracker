@@ -313,4 +313,72 @@ public class SeasonService implements Payable, Reportable {
             );
         }
     }
+
+    public void displaySeasonFigures() {
+
+        System.out.println();
+        System.out.println(
+                "===== DELIVERIES PER MEMBER ====="
+        );
+
+        Map<String, List<Delivery>> deliveriesPerMember =
+                getDeliveriesPerMember();
+
+        for (Map.Entry<String, List<Delivery>> entry :
+                deliveriesPerMember.entrySet()) {
+
+            System.out.println();
+            System.out.println(
+                    "Member: " + entry.getKey()
+            );
+
+            for (Delivery delivery :
+                    entry.getValue()) {
+
+                System.out.println(
+                        "  " + delivery
+                );
+            }
+        }
+
+        System.out.println();
+        System.out.println(
+                "===== PAYMENT PER MEMBER ====="
+        );
+
+        Map<String, Double> payments =
+                calculatePaymentPerMember();
+
+        for (Map.Entry<String, Double> entry :
+                payments.entrySet()) {
+
+            System.out.printf(
+                    "%s -> %.2f MUR%n",
+                    entry.getKey(),
+                    entry.getValue()
+            );
+        }
+
+        System.out.println();
+        System.out.println(
+                "===== SEASON TOTALS ====="
+        );
+
+        System.out.println(
+                "Total deliveries: " +
+                        getDeliveryCount()
+        );
+
+        System.out.printf(
+                "Total mass: %.2f kg%n",
+                getTotalMass()
+        );
+
+        System.out.printf(
+                "Total season payment: %.2f MUR%n",
+                getTotalSeasonPayment()
+        );
+    }
+
+
 }
