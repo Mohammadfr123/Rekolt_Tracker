@@ -1,4 +1,6 @@
 package mu.rekolt.model;
 
-public class Payable {
+public interface Payable {
+
+    double calculateNetPayable();
 }

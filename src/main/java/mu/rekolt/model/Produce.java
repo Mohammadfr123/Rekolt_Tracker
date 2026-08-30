@@ -8,7 +8,10 @@ public abstract class Produce {
     private final String name;
     private final double pricePerKg;
 
-    public Produce(String code, String name, double pricePerKg) {
+    public Produce(
+            String code,
+            String name,
+            double pricePerKg) {
 
         if (code == null || code.isBlank()) {
             throw new IllegalArgumentException(
@@ -24,7 +27,7 @@ public abstract class Produce {
 
         if (pricePerKg <= 0) {
             throw new IllegalArgumentException(
-                    "Price per kg must be greater than 0."
+                    "Price per kg must be greater than zero."
             );
         }
 
@@ -47,26 +50,13 @@ public abstract class Produce {
 
     public abstract double getCategoryMultiplier();
 
-    public double calculateValue(double massKg) {
-
-        if (massKg <= 0) {
-            throw new IllegalArgumentException(
-                    "Mass must be greater than 0."
-            );
-        }
-
-        return massKg
-                * pricePerKg
-                * getCategoryMultiplier();
-    }
-
     @Override
     public String toString() {
 
         return String.format(
                 "%s (%s) - %.2f MUR/kg",
-                name,
                 code,
+                name,
                 pricePerKg
         );
     }
