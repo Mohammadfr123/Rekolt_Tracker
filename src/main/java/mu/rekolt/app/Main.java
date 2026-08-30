@@ -7,7 +7,7 @@ import mu.rekolt.model.Grade;
 import mu.rekolt.model.PerishableProduce;
 import mu.rekolt.model.Produce;
 import mu.rekolt.service.SeasonService;
-
+import mu.rekolt.service.ReportService;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -19,6 +19,9 @@ public class Main {
 
     private static final SeasonService seasonService =
             new SeasonService();
+
+    private static final ReportService reportService =
+            new ReportService(seasonService);
 
     public static void main(String[] args) {
 
@@ -49,10 +52,7 @@ public class Main {
                     break;
 
                 case 3:
-                    System.out.println();
-                    System.out.println(
-                            "Season report generation will be added in Objective 6."
-                    );
+                    reportService.generateSeasonReport();
                     break;
 
                 case 4:
